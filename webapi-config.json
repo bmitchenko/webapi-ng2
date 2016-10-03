@@ -1,0 +1,8 @@
+{
+    "specification": "api-explorer",
+    "path": "/api/docs",
+    "projectPath": "d:/Projects/ApiDescriptor/src/ApiDescriptor.Demo",
+    "outputFile": "./dist/test-client.ts",
+    "outputClass": "ApiClient",
+    "usePromises": true
+}
