@@ -5,7 +5,6 @@ import {
     EnumValue,
     Operation,
     OperationParameter,
-    ParameterSource,
     Property,
     Schema,
     SchemaType,
