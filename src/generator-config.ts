@@ -5,7 +5,7 @@ export interface GeneratorConfig {
     /**
      * Specification schema. Default is 'api-explorer'. 
      */
-    specification?: "api-explorer";
+    specification?: "api-explorer" | "swagger-core";
 
     /**
      * Host and port of the Web API.
@@ -25,7 +25,7 @@ export interface GeneratorConfig {
     /**
      * Relative path for the output file. Default path is "./{outputClass}.ts".
      */
-    outputFile?: string;    
+    outputFile?: string;
 
     /**
      * Name of the generated class. Default name is 'ApiClient'.

@@ -1,7 +1,7 @@
 {
-    "specification": "api-explorer",
-    "path": "/api/docs",
-    "projectPath": "d:/Projects/ApiDescriptor/src/ApiDescriptor.Demo",
+    "specification": "swagger-core",
+    "host": "http://localhost:49994",
+    "path": "/swagger/v1/swagger.json",
     "outputFile": "./dist/test-client.ts",
     "outputClass": "ApiClient",
     "usePromises": true

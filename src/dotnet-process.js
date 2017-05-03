@@ -1,5 +1,6 @@
 "use strict";
-var child_process_1 = require('child_process');
+Object.defineProperty(exports, "__esModule", { value: true });
+var child_process_1 = require("child_process");
 var killProcess = require('tree-kill');
 /**
  * Launches and teminates 'dotnet' process.

@@ -1,478 +1,493 @@
-import { ActionDescription } from './action-description';
-import { ActionParameterDescription } from './action-parameter-description';
-import { ApiDescription } from './api-description';
-import { ControllerDescriptor } from './controller-description';
-import { Definition } from './definition';
-import { DefinitionAttribute } from './definition-attribute';
-import { DefinitionAttributeParameter } from './definition-attribute-parameter';
-import { DefinitionProperty } from './definition-property';
-import { DefinitionType } from './definition-type';
-import { DefinitionValue } from './definition-value';
-import { GeneratorConfig } from '../../generator-config';
-import { ParameterSource } from './parameter-source';
+// import { ActionDescription } from './action-description';
+// import { ActionParameterDescription } from './action-parameter-description';
+// import { ApiDescription } from './api-description';
+// import { ControllerDescriptor } from './controller-description';
+// import { Definition } from './definition';
+// import { DefinitionAttribute } from './definition-attribute';
+// import { DefinitionAttributeParameter } from './definition-attribute-parameter';
+// import { DefinitionProperty } from './definition-property';
+// import { DefinitionType } from './definition-type';
+// import { DefinitionValue } from './definition-value';
+// import { GeneratorConfig } from '../../generator-config';
+// import { ParameterSource } from './parameter-source';
 
-export class ApiExplorerGenerator {
-    private _definitions: { [name: string]: string } = {};
+// export class ApiExplorerGenerator {
+//     private _definitions: { [name: string]: string } = {};
 
-    public generate(apiDescription: ApiDescription, config: GeneratorConfig): string {
-        if (apiDescription.definitions != undefined) {
-            this.mapDefinitions(apiDescription.definitions);
-        }
+//     public generate(apiDescription: ApiDescription, config: GeneratorConfig): string {
+//         if (apiDescription.definitions != undefined) {
+//             this.mapDefinitions(apiDescription.definitions);
+//         }
 
-        let script =
-            this.getImports(config) + '\n\r' +
-            this.getApi(apiDescription, config) + '\n\r' +
-            this.getApiConnection(apiDescription, config) + '\n\r' +
-            this.getControllers(apiDescription, config) + '\n\r' +
-            this.getModels(apiDescription) + '\n\r' +
-            this.getEnums(apiDescription);
+//         let script =
+//             this.getImports(config) + '\n\r' +
+//             this.getApi(apiDescription, config) + '\n\r' +
+//             this.getApiConnection(apiDescription, config) + '\n\r' +
+//             this.getControllers(apiDescription, config) + '\n\r' +
+//             this.getModels(apiDescription) + '\n\r' +
+//             this.getEnums(apiDescription);
 
-        return script;
-    }
+//         return script;
+//     }
 
-    private mapDefinitions(definition: Definition[]): void {
-        var map = new Map<string, Definition>();
+//     private mapDefinitions(definition: Definition[]): void {
+//         var map = new Map<string, Definition>();
 
-        definition.forEach((type) => {
-            map.set(type.name, type);
-        });
+//         definition.forEach((type) => {
+//             map.set(type.name, type);
+//         });
 
-        definition.forEach((type) => {
-            this.mapDefinition(type, map);
-        });
+//         definition.forEach((type) => {
+//             this.mapDefinition(type, map);
+//         });
 
-        this._definitions['void'] = 'void';
-    }
+//         this._definitions['void'] = 'void';
+//     }
 
-    private mapDefinition(definition: Definition, definitionMap: Map<string, Definition>): string {
-        var mappedType = (this._definitions[definition.name]);
+//     private mapDefinition(definition: Definition, definitionMap: Map<string, Definition>): string {
+//         var mappedType = (this._definitions[definition.name]);
 
-        if (mappedType != undefined) {
-            return mappedType;
-        }
+//         if (mappedType != undefined) {
+//             return mappedType;
+//         }
 
-        switch (definition.type) {
-            case DefinitionType.Class: mappedType = this.mapObject(definition, definitionMap); break;
-            case DefinitionType.Collection: mappedType = this.mapCollection(definition, definitionMap); break;
-            case DefinitionType.Enum: mappedType = this.mapEnum(definition, definitionMap); break;
-            case DefinitionType.Interface: mappedType = this.mapObject(definition, definitionMap); break;
-            case DefinitionType.Primitive: mappedType = this.mapPrimitive(definition, definitionMap); break;
-            default: break;
-        }
+//         switch (definition.type) {
+//             case DefinitionType.Class: mappedType = this.mapObject(definition, definitionMap); break;
+//             case DefinitionType.Collection: mappedType = this.mapCollection(definition, definitionMap); break;
+//             case DefinitionType.Enum: mappedType = this.mapEnum(definition, definitionMap); break;
+//             case DefinitionType.Interface: mappedType = this.mapObject(definition, definitionMap); break;
+//             case DefinitionType.Primitive: mappedType = this.mapPrimitive(definition, definitionMap); break;
+//             default: break;
+//         }
 
-        if (mappedType == undefined) {
-            throw new Error(`Cannot map type ${definition.name}.`);
-        }
+//         if (mappedType == undefined) {
+//             throw new Error(`Cannot map type ${definition.name}.`);
+//         }
 
-        this._definitions[definition.name] = mappedType;
+//         this._definitions[definition.name] = mappedType;
 
-        return mappedType;
-    }
+//         return mappedType;
+//     }
 
-    private mapCollection(definition: Definition, definitionMap: Map<string, Definition>): string {
-        let collectionTypeName = definition.name.substr(0, definition.name.length - 2);
+//     private mapCollection(definition: Definition, definitionMap: Map<string, Definition>): string {
+//         let collectionTypeName = definition.name.substr(0, definition.name.length - 2);
 
-        if (!definitionMap.has(collectionTypeName)) {
-            throw new Error(`Type ${collectionTypeName} not found.`);
-        }
+//         if (!definitionMap.has(collectionTypeName)) {
+//             throw new Error(`Type ${collectionTypeName} not found.`);
+//         }
 
-        let collectionType = this.mapDefinition(definitionMap.get(collectionTypeName), definitionMap);
+//         let collectionType = this.mapDefinition(definitionMap.get(collectionTypeName), definitionMap);
 
-        return `Array<${collectionType}>`;
-    }
+//         return `Array<${collectionType}>`;
+//     }
 
-    private mapEnum(definition: Definition, definitionMap: Map<string, Definition>): string {
-        return definition.name;
-    }
+//     private mapEnum(definition: Definition, definitionMap: Map<string, Definition>): string {
+//         return definition.name;
+//     }
 
-    private mapPrimitive(definition: Definition, definitionMap: Map<string, Definition>): string {
-        switch (definition.name.toLowerCase()) {
-            case 'guid':
-            case 'string':
-                return 'string';
+//     private mapPrimitive(definition: Definition, definitionMap: Map<string, Definition>): string {
+//         switch (definition.name.toLowerCase()) {
+//             case 'guid':
+//             case 'string':
+//                 return 'string';
 
-            case 'datetime':
-                return 'Date';
+//             case 'datetime':
+//                 return 'Date';
 
-            case 'bool':
-            case 'boolean':
-                return 'boolean';
+//             case 'bool':
+//             case 'boolean':
+//                 return 'boolean';
 
-            case 'byte':
-            case 'short':
-            case 'int':
-            case 'int16':
-            case 'int32':
-            case 'int64':
-            case 'float':
-            case 'decimal':
-            case 'double':
-                return 'number';
+//             case 'byte':
+//             case 'short':
+//             case 'int':
+//             case 'int16':
+//             case 'int32':
+//             case 'int64':
+//             case 'float':
+//             case 'decimal':
+//             case 'double':
+//                 return 'number';
 
-            case 'void':
-                return 'void';
+//             case 'void':
+//                 return 'void';
 
-            case 'object':
-                return 'any';
+//             case 'object':
+//                 return 'any';
 
-            default:
-                throw new Error(`Type not found ${definition.name}.`);
-        }
-    }
+//             default:
+//                 throw new Error(`Type not found ${definition.name}.`);
+//         }
+//     }
 
-    private mapObject(definition: Definition, definitionMap: Map<string, Definition>): string {
-        let name = definition.name;
+//     private mapObject(definition: Definition, definitionMap: Map<string, Definition>): string {
+//         let name = definition.name;
 
-        if (name.indexOf('<') == -1) {
-            return name;
-        }
+//         if (name.indexOf('<') == -1) {
+//             return name;
+//         }
 
-        let genericArguments = name
-            .split('<')[1]
-            .replace('>', '')
-            .split(',')
-            .map(x => x.trim());
+//         let genericArguments = name
+//             .split('<')[1]
+//             .replace('>', '')
+//             .split(',')
+//             .map(x => x.trim());
 
-        if (!genericArguments.some(a => definitionMap.has(a))) {
-            return name;
-        }
+//         if (!genericArguments.some(a => definitionMap.has(a))) {
+//             return name;
+//         }
 
-        let genericTypes: Definition[] = [];
+//         let genericTypes: Definition[] = [];
 
-        genericArguments.forEach((argument) => {
-            if (!definitionMap.has(argument)) {
-                throw new Error(`Type ${argument} not found.`);
-            }
+//         genericArguments.forEach((argument) => {
+//             if (!definitionMap.has(argument)) {
+//                 throw new Error(`Type ${argument} not found.`);
+//             }
 
-            genericTypes.push(definitionMap.get(argument));
-        });
+//             genericTypes.push(definitionMap.get(argument));
+//         });
 
-        let genericParameters = genericTypes
-            .map(x => this.mapDefinition(x, definitionMap))
-            .join(', ');
+//         let genericParameters = genericTypes
+//             .map(x => this.mapDefinition(x, definitionMap))
+//             .join(', ');
 
-        name = name
-            .split('<')[0];
+//         name = name
+//             .split('<')[0];
 
-        return `${name}<${genericParameters}>`;
-    }
+//         return `${name}<${genericParameters}>`;
+//     }
 
-    private getImports(config: GeneratorConfig): string {
-        let imports = `
-            // 
-            // This file is autogenerated. 
-            // See http://github.com/bmitchenko/webapi-ng2 for details. 
-            //
+//     private getImports(config: GeneratorConfig): string {
+//         let imports = `
+//             // 
+//             // This file is autogenerated. 
+//             // See http://github.com/bmitchenko/webapi-ng2 for details. 
+//             //
 
-            import { Injectable } from '@angular/core';
-            import { Http, ResponseContentType, URLSearchParams } from '@angular/http';
-            import { Observable } from 'rxjs';
-        `;
+//             import { Injectable } from '@angular/core';
+//             import { Http, ResponseContentType, URLSearchParams } from '@angular/http';
+//             import { Observable } from 'rxjs';
+//             import 'rxjs/add/operator/map';
+//             import 'rxjs/add/operator/toPromise';
+//         `;
 
-        return imports;
-    }
+//         return imports;
+//     }
 
-    private getApi(apiDescription: ApiDescription, config: GeneratorConfig): string {
-        let fields: string[] = [];
-        let properties: string[] = [];
+//     private getApi(apiDescription: ApiDescription, config: GeneratorConfig): string {
+//         let fields: string[] = [];
+//         let properties: string[] = [];
 
-        if (apiDescription.controllers != undefined) {
-            apiDescription.controllers.forEach((controller) => {
-                var className = controller.name + 'Controller'; 
-                var fieldName = '_' + this.camelCase(controller.name);
+//         if (apiDescription.controllers != undefined) {
+//             apiDescription.controllers.forEach((controller) => {
+//                 var className = controller.name + 'Controller'; 
+//                 var fieldName = '_' + this.camelCase(controller.name);
 
-                fields.push(`private ${fieldName}: ${className};`);
+//                 fields.push(`private ${fieldName}: ${className};`);
 
-                var property = `public get ${this.camelCase(controller.name)}(): ${className} {
-                        if (this.${fieldName} == undefined) {
-                            this.${fieldName} = new ${className}(this._connection);
-                        }
+//                 var property = `public get ${this.camelCase(controller.name)}(): ${className} {
+//                         if (this.${fieldName} == undefined) {
+//                             this.${fieldName} = new ${className}(this._connection);
+//                         }
 
-                        return this.${fieldName};
-                    }`;
+//                         return this.${fieldName};
+//                     }`;
 
-                properties.push(property);
-            });
-        }
+//                 properties.push(property);
+//             });
+//         }
 
-        return `
-            @Injectable()
-            export class ${config.outputClass} {
-                private _connection: ApiConnection;
-                ${fields.join('\n')}
+//         return `
+//             @Injectable()
+//             export class ${config.outputClass} {
+//                 private _connection: ApiConnection;
+//                 ${fields.join('\n')}
 
-                constructor (http: Http) {
-                    this._connection = new ApiConnection(http, '');
-                }
+//                 constructor (http: Http) {
+//                     this._connection = new ApiConnection(http, '');
+//                 }
                 
-                public get basePath(): string {
-                    return this._connection.basePath;
-                }
+//                 public get basePath(): string {
+//                     return this._connection.basePath;
+//                 }
 
-                public set basePath(basePath: string) {
-                    this._connection.basePath = basePath;
-                }
+//                 public set basePath(basePath: string) {
+//                     this._connection.basePath = basePath;
+//                 }
                 
-                ${properties.join('\n')}
-            }`;
-    }
+//                 ${properties.join('\n')}
+//             }`;
+//     }
 
-    private getApiConnection(apiDescription: ApiDescription, config: GeneratorConfig): string {
-        let returnType = config.usePromises ? 'Promise<T>' : 'Observable<T>';
-        let toPromise = config.usePromises ? '.toPromise()' : '';
+//     private getApiConnection(apiDescription: ApiDescription, config: GeneratorConfig): string {
+//         let returnType = config.usePromises ? 'Promise<T>' : 'Observable<T>';
+//         let toPromise = config.usePromises ? '.toPromise()' : '';
 
-        return `
-            export class ApiConnection {
-                constructor(public http: Http, public basePath: string) {
-                }
+//         return `
+//             export class ApiConnection {
+//                 constructor(public http: Http, public basePath: string) {
+//                 }
 
-                public request<T>(pattern: string, method: string, routeParams?: any, body?: any): ` + returnType + ` {
-                    let url = pattern;
-                    let search = new URLSearchParams();
+//                 public request<T>(pattern: string, method: string, routeParams?: any, body?: any): ` + returnType + ` {
+//                     let url = pattern;
+//                     let search = new URLSearchParams();
 
-                    if (routeParams != undefined) {
-                        Object.getOwnPropertyNames(routeParams).forEach((paramName) => {
-                            if (url.indexOf(` + "`{${paramName}}`" + `) != -1) {
-                                url = url.replace(` + "`{${paramName}}`" + `, routeParams[paramName]);
-                            }
-                            else {
-                                this.addSearchParam(search, paramName, routeParams[paramName]);
-                            }
-                        });
-                    }
+//                     if (routeParams != undefined) {
+//                         Object.getOwnPropertyNames(routeParams).forEach((paramName) => {
+//                             if (url.indexOf(` + "`{${paramName}}`" + `) != -1) {
+//                                 url = url.replace(` + "`{${paramName}}`" + `, routeParams[paramName]);
+//                             }
+//                             else {
+//                                 this.addSearchParam(search, paramName, routeParams[paramName]);
+//                             }
+//                         });
+//                     }
 
-                    let request = this.http.request(this.basePath + url, {
-                        body: body,
-                        method: method,
-                        responseType: ResponseContentType.Json,
-                        search: search
-                    });
+//                     let request = this.http.request(this.basePath + url, {
+//                         body: body,
+//                         method: method,
+//                         search: search
+//                     });
 
-                    return request.map(x => x.json())` + toPromise + `;
-                }
+//                     return request
+//                         .map(x => {
+//                             var contentType = x.headers.get("content-type");
 
-                private addSearchParam(search: URLSearchParams, name: string, value: any): void {
-                    if (value instanceof Array) {
-                        value.forEach((v, i) => {
-                            this.addSearchParam(search, ` + "`${name}[${i}]`" + `, v);
-                        });
-                    } else {
-                        if (value instanceof Date) {
-                            search.append(name, value.toUTCString());
-                        } else {
-                            if (value instanceof Object) {
-                                Object.getOwnPropertyNames(value).forEach((propertyName) => {
-                                    this.addSearchParam(search, ` + "`${name}.${propertyName}`" + `, value[propertyName]);
-                                });
-                            }
-                            else {
-                                search.append(name, value);
-                            }
-                        }
-                    }
-                }
-            }`;
-    }
+//                             if (contentType && contentType.indexOf("application/json") !== -1) {
+//                                 return x.json();
+//                             }
 
-    private getControllers(apiDescription: ApiDescription, config: GeneratorConfig): string {
-        let controllers = '';
+//                             if (x.ok) {
+//                                 return null;
+//                             }
 
-        if (apiDescription.controllers != undefined) {
-            apiDescription.controllers.forEach((controller) => {
-                controllers += `
-                    export class ${controller.name}Controller {
-                        constructor(private _connection: ApiConnection) {
-                        }
+//                             return x.text();
+//                         })
+//                         ` + toPromise + `;
+//                 }
 
-                        ${this.getControllerMethods(controller, config)}
-                    }
-                `;
-            });
-        }
+//                 private addSearchParam(search: URLSearchParams, name: string, value: any): void {
+//                     if (value instanceof Array) {
+//                         value.forEach((v, i) => {
+//                             this.addSearchParam(search, ` + "`${name}[${i}]`" + `, v);
+//                         });
+//                     } else {
+//                         if (value instanceof Date) {
+//                             search.append(name, value.toUTCString());
+//                         } else {
+//                             if (value instanceof Object) {
+//                                 Object.getOwnPropertyNames(value).forEach((propertyName) => {
+//                                     this.addSearchParam(search, ` + "`${name}.${propertyName}`" + `, value[propertyName]);
+//                                 });
+//                             }
+//                             else {
+//                                 search.append(name, value);
+//                             }
+//                         }
+//                     }
+//                 }
+//             }`;
+//     }
 
-        return controllers;
-    }
+//     private getControllers(apiDescription: ApiDescription, config: GeneratorConfig): string {
+//         let controllers = '';
 
-    private getControllerMethods(controllerDescription: ControllerDescriptor, config: GeneratorConfig): string {
-        if (controllerDescription.actions == undefined) {
-            return '';
-        }
+//         if (apiDescription.controllers != undefined) {
+//             apiDescription.controllers.forEach((controller) => {
+//                 controllers += `
+//                     export class ${controller.name}Controller {
+//                         constructor(private _connection: ApiConnection) {
+//                         }
 
-        let actions = '';
+//                         ${this.getControllerMethods(controller, config)}
+//                     }
+//                 `;
+//             });
+//         }
 
-        controllerDescription.actions.forEach((action) => {
-            let params: { name: string, type: string, fromBody: boolean, defaultValue?: string }[] = [];
-            let bodyParam = 'undefined';
+//         return controllers;
+//     }
 
-            if (action.parameters != undefined) {
-                action.parameters.forEach((actionParameter) => {
-                    let param = {
-                        defaultValue: actionParameter.defaultValue,
-                        fromBody: actionParameter.source == ParameterSource.Body,
-                        name: actionParameter.name,
-                        type: this._definitions[actionParameter.type]
-                    };
+//     private getControllerMethods(controllerDescription: ControllerDescriptor, config: GeneratorConfig): string {
+//         if (controllerDescription.actions == undefined) {
+//             return '';
+//         }
 
-                    if (param.type == 'string' && param.defaultValue != undefined) {
-                        param.defaultValue = `'${param.defaultValue}'`;
-                    }
+//         let actions = '';
 
-                    if (!actionParameter.isRequired && actionParameter.defaultValue == undefined) {
-                        param.name += '?';
-                    }
+//         controllerDescription.actions.forEach((action) => {
+//             let params: { name: string, type: string, fromBody: boolean, defaultValue?: string }[] = [];
+//             let bodyParam = 'undefined';
 
-                    if (actionParameter.source == ParameterSource.Body) {
-                        bodyParam = actionParameter.name;
-                    }
+//             if (action.parameters != undefined) {
+//                 action.parameters.forEach((actionParameter) => {
+//                     let param = {
+//                         defaultValue: actionParameter.defaultValue,
+//                         fromBody: actionParameter.source == ParameterSource.Body,
+//                         name: actionParameter.name,
+//                         type: this._definitions[actionParameter.type]
+//                     };
 
-                    params.push(param);
-                });
-            }
+//                     if (param.type == 'string' && param.defaultValue != undefined) {
+//                         param.defaultValue = `'${param.defaultValue}'`;
+//                     }
 
-            let methodParams = params.map(p => {
-                if (p.defaultValue != undefined) {
-                    return `${p.name}: ${p.type} = ${p.defaultValue}`;
-                }
+//                     if (!actionParameter.isRequired && actionParameter.defaultValue == undefined) {
+//                         param.name += '?';
+//                     }
 
-                return `${p.name}: ${p.type}`;
-            }).join(', ');
+//                     if (actionParameter.source == ParameterSource.Body) {
+//                         bodyParam = actionParameter.name;
+//                     }
 
-            let routeParams = params
-                .filter(p => !p.fromBody)
-                .map(p => {
-                    return `${p.name.replace('?', '')}: ${p.name.replace('?', '')}`;
-                })
-                .join(', ');
+//                     params.push(param);
+//                 });
+//             }
 
-            if (routeParams) {
-                routeParams = `{ ${routeParams} }`;
-            }
-            else {
-                routeParams = 'undefined';
-            }
+//             let methodParams = params.map(p => {
+//                 if (p.defaultValue != undefined) {
+//                     return `${p.name}: ${p.type} = ${p.defaultValue}`;
+//                 }
 
-            let returnTypeArgument = 'void';
+//                 return `${p.name}: ${p.type}`;
+//             }).join(', ');
 
-            if (action.responseType != undefined) {
-                returnTypeArgument = this._definitions[action.responseType];
-            }
+//             let routeParams = params
+//                 .filter(p => !p.fromBody)
+//                 .map(p => {
+//                     return `${p.name.replace('?', '')}: ${p.name.replace('?', '')}`;
+//                 })
+//                 .join(', ');
 
-            let returnType = config.usePromises ? `Promise<${returnTypeArgument}>` : `Observable<${returnTypeArgument}>`;
+//             if (routeParams) {
+//                 routeParams = `{ ${routeParams} }`;
+//             }
+//             else {
+//                 routeParams = 'undefined';
+//             }
 
-            actions += `
-                public ${this.camelCase(action.name)}(${methodParams}): ${returnType} {
-                    return this._connection.request('${action.route}', '${action.method}', ${routeParams}, ${bodyParam});
-                }
-            `;
-        });
+//             let returnTypeArgument = 'void';
 
-        return actions;
-    }
+//             if (action.responseType != undefined) {
+//                 returnTypeArgument = this._definitions[action.responseType];
+//             }
 
-    private getModels(apiDescription: ApiDescription): string {
-        if (apiDescription.definitions == undefined) {
-            return '';
-        }
+//             let returnType = config.usePromises ? `Promise<${returnTypeArgument}>` : `Observable<${returnTypeArgument}>`;
 
-        let classesAndInterfaces = apiDescription.definitions
-            .filter(x => x.type == DefinitionType.Class || x.type == DefinitionType.Interface);
+//             actions += `
+//                 public ${this.camelCase(action.name)}(${methodParams}): ${returnType} {
+//                     return this._connection.request<${returnTypeArgument}>('${action.route}', '${action.method}', ${routeParams}, ${bodyParam});
+//                 }
+//             `;
+//         });
 
-        if (classesAndInterfaces.length == 0) {
-            return '';
-        }
+//         return actions;
+//     }
 
-        let models: string[] = [];
+//     private getModels(apiDescription: ApiDescription): string {
+//         if (apiDescription.definitions == undefined) {
+//             return '';
+//         }
 
-        classesAndInterfaces.forEach((definition) => {
-            if (definition.name.indexOf('<') != -1) {
-                let genericArguments = definition.name
-                    .split('<')[1]
-                    .replace('>', '')
-                    .split(',')
-                    .map(x => x.trim());
+//         let classesAndInterfaces = apiDescription.definitions
+//             .filter(x => x.type == DefinitionType.Class || x.type == DefinitionType.Interface);
 
-                if (genericArguments.every(a => this._definitions[a] != undefined)) {
-                    return;
-                }
-            }
+//         if (classesAndInterfaces.length == 0) {
+//             return '';
+//         }
 
-            let properties: string[] = [];
+//         let models: string[] = [];
 
-            if (definition.properties != undefined) {
-                definition.properties.forEach((propertyDescription) => {
-                    let name = this.camelCase(propertyDescription.name);
+//         classesAndInterfaces.forEach((definition) => {
+//             if (definition.name.indexOf('<') != -1) {
+//                 let genericArguments = definition.name
+//                     .split('<')[1]
+//                     .replace('>', '')
+//                     .split(',')
+//                     .map(x => x.trim());
 
-                    if (propertyDescription.isNullable) {
-                        name += '?';
-                    }
+//                 if (genericArguments.every(a => this._definitions[a] != undefined)) {
+//                     return;
+//                 }
+//             }
 
-                    let type = this._definitions[propertyDescription.type];
+//             let properties: string[] = [];
 
-                    if (type == undefined) {
-                        type = propertyDescription.type;
-                    }
+//             if (definition.properties != undefined) {
+//                 definition.properties.forEach((propertyDescription) => {
+//                     let name = this.camelCase(propertyDescription.name);
 
-                    let property = `${name}: ${type};`;
+//                     if (propertyDescription.isNullable) {
+//                         name += '?';
+//                     }
 
-                    properties.push(property);
-                });
-            }
+//                     let type = this._definitions[propertyDescription.type];
 
-            let model = `export interface ${this._definitions[definition.name]}`;
+//                     if (type == undefined) {
+//                         type = propertyDescription.type;
+//                     }
 
-            if (definition.extends != undefined && definition.extends.length > 0) {
-                let baseTypes = definition.extends
-                    .map(x => this._definitions[x])
-                    .join(', ');
+//                     let property = `${name}: ${type};`;
 
-                model += ` extends ${baseTypes}`;
-            }
+//                     properties.push(property);
+//                 });
+//             }
 
-            model += ` {
-                ${properties.join('\n')}
-            }`;
+//             let model = `export interface ${this._definitions[definition.name]}`;
 
-            models.push(model);
-        });
+//             if (definition.extends != undefined && definition.extends.length > 0) {
+//                 let baseTypes = definition.extends
+//                     .map(x => this._definitions[x])
+//                     .join(', ');
 
-        return models.join('\n\n');
-    }
+//                 model += ` extends ${baseTypes}`;
+//             }
 
-    private getEnums(apiDescription: ApiDescription): string {
-        let enumDescriptions = apiDescription.definitions == undefined
-            ? undefined
-            : apiDescription.definitions.filter(x => x.type == DefinitionType.Enum);
+//             model += ` {
+//                 ${properties.join('\n')}
+//             }`;
 
-        if (enumDescriptions == undefined || enumDescriptions.length == 0) {
-            return '';
-        }
+//             models.push(model);
+//         });
 
-        let tsEnums: string[] = [];
+//         return models.join('\n\n');
+//     }
 
-        enumDescriptions.forEach((enumDescription) => {
-            let values: string[] = [];
+//     private getEnums(apiDescription: ApiDescription): string {
+//         let enumDescriptions = apiDescription.definitions == undefined
+//             ? undefined
+//             : apiDescription.definitions.filter(x => x.type == DefinitionType.Enum);
 
-            if (enumDescription.values != undefined) {
-                enumDescription.values.forEach((valueDescription) => {
-                    if (valueDescription.value != undefined) {
-                        values.push(`${valueDescription.name} = ${valueDescription.value}`);
-                    } else {
-                        values.push(`${valueDescription.name}`);
-                    }
-                });
-            }
+//         if (enumDescriptions == undefined || enumDescriptions.length == 0) {
+//             return '';
+//         }
 
-            let tsEnum = `export enum ${enumDescription.name} {
-                ${values.join(', \n')}
-            }`;
+//         let tsEnums: string[] = [];
 
-            tsEnums.push(tsEnum);
-        });
+//         enumDescriptions.forEach((enumDescription) => {
+//             let values: string[] = [];
 
-        return tsEnums.join('\n\n');
-    }
+//             if (enumDescription.values != undefined) {
+//                 enumDescription.values.forEach((valueDescription) => {
+//                     if (valueDescription.value != undefined) {
+//                         values.push(`${valueDescription.name} = ${valueDescription.value}`);
+//                     } else {
+//                         values.push(`${valueDescription.name}`);
+//                     }
+//                 });
+//             }
 
-    private camelCase(text: string): string {
-        return text.substr(0, 1).toLowerCase() + text.substr(1);
-    }
-}
+//             let tsEnum = `export enum ${enumDescription.name} {
+//                 ${values.join(', \n')}
+//             }`;
+
+//             tsEnums.push(tsEnum);
+//         });
+
+//         return tsEnums.join('\n\n');
+//     }
+
+//     private camelCase(text: string): string {
+//         return text.substr(0, 1).toLowerCase() + text.substr(1);
+//     }
+// }

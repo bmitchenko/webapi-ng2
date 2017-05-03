@@ -2,7 +2,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { ApiClientBuilder } from './src/api-client-builder';
+import { Generator } from './src/generator';
 import { GeneratorConfig } from './src/generator-config';
 
 var config: GeneratorConfig | undefined;
@@ -19,7 +19,7 @@ try {
     process.exit(1);
 }
 
-new ApiClientBuilder()
+new Generator()
     .configure(config!)
     .enableFormatting()
     .build()

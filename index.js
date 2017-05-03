@@ -1,8 +1,9 @@
 //#! /usr/bin/env node
 "use strict";
-var fs = require('fs');
-var path = require('path');
-var api_client_builder_1 = require('./src/api-client-builder');
+Object.defineProperty(exports, "__esModule", { value: true });
+var fs = require("fs");
+var path = require("path");
+var generator_1 = require("./src/generator");
 var config;
 var configPath = path.resolve(process.cwd(), process.argv[2] || 'webapi-config.json');
 try {
@@ -15,7 +16,7 @@ catch (e) {
     console.log("WEBAPI-NG2: Can't load config " + configPath + ". " + e + ".");
     process.exit(1);
 }
-new api_client_builder_1.ApiClientBuilder()
+new generator_1.Generator()
     .configure(config)
     .enableFormatting()
     .build()

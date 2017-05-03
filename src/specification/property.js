@@ -1,3 +1,3 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-//# sourceMappingURL=generator-config.js.map
+//# sourceMappingURL=property.js.map
