@@ -68,7 +68,7 @@ export class AngularGenerator {
         let result = `
             @Injectable()
             export class ApiOptions {
-                public basePath: string = '/api';
+                public basePath: string = '';
                 public loginUrl: string;
             }`;
 
@@ -80,8 +80,12 @@ export class AngularGenerator {
         let toPromise = config.usePromises ? '.toPromise()' : '';
 
         let result = `
+            @Injectable()
             export abstract class BaseApi {
+                private dateFormat = /^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.*/
+
                 constructor(public http: Http, public options: ApiOptions) {
+                    this.reviver = this.reviver.bind(this);
                 }
 
                 protected request<T>(path: string, method: string, urlParams?: any, body?: any): ` + returnType + ` {
@@ -99,8 +103,13 @@ export class AngularGenerator {
                         });
                     }
 
+                    if (body != undefined) {
+                        Object.getOwnPropertyNames(body).forEach((paramName) => {
+                            this.addSearchParam(search, paramName, body[paramName]);
+                        });
+                    }                    
+
                     let request = this.http.request(this.options.basePath + url, {
-                        body: body,
                         method: method,
                         search: search
                     });
@@ -110,7 +119,7 @@ export class AngularGenerator {
                             var contentType = x.headers.get("content-type");
 
                             if (contentType && contentType.indexOf("application/json") !== -1) {
-                                return x.json();
+                                return this.parseJson(x.text());
                             }
 
                             if (x.ok) {
@@ -120,6 +129,18 @@ export class AngularGenerator {
                             return x.text();
                         })
                         ` + toPromise + `;
+                }
+
+                private parseJson(text: string): any {
+                    return JSON.parse(text, this.reviver);
+                }
+
+                private reviver(key, value) {
+                    if (typeof value === "string" && this.dateFormat.test(value)) {
+                        return new Date(value);
+                    }
+
+                    return value;
                 }
 
                 private addSearchParam(search: URLSearchParams, name: string, value: any): void {
@@ -153,49 +174,6 @@ export class AngularGenerator {
         if (controller.operations != undefined) {
             for (let operation of controller.operations) {
                 operations.push(this.getOperation(operation, config));
-                // let name = this.camelCase(operation.name);
-                // let returnTypeArgument = this.mapType(operation.responseType);
-                // let returnType = config.usePromises ? `Promise<${returnTypeArgument}>` : `Observable<${returnTypeArgument}>`;
-                // let parameters: string[] = [];
-
-                // if (operation.parameters != undefined) {
-                //     for (let operationParameter of operation.parameters) {
-                //         let parameter = `${operationParameter.name}`;
-
-                //         if (!operationParameter.required && operationParameter.default == undefined) {
-                //             parameter += '?';
-                //         }
-
-                //         let parameterType = this.mapType(operationParameter.type);
-
-                //         parameter += `: ${parameterType}`;
-
-                //         if (operationParameter.default != undefined) {
-                //             let defaultValue = operationParameter.default;
-
-                //             if (parameterType == 'string') {
-                //                 defaultValue = `'${defaultValue}'`;
-                //             }
-
-                //             parameter += ` = ${defaultValue}`;
-                //         }
-
-                //         parameters.push(parameter);
-                //     }
-                // }
-
-                // //             let params: { name: string, type: string, fromBody: boolean, defaultValue?: string }[] = [];
-                // //             let bodyParam = 'undefined';
-
-                // let methodBody = '';
-
-                // let operationMethod = `
-                //     public ${name}(${parameters.join()}): ${returnType} {
-                //         return null;
-                //     }
-                // `;
-
-                // operations.push(operationMethod);
             }
         }
 

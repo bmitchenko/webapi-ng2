@@ -33,13 +33,13 @@ var AngularGenerator = (function () {
         return result;
     };
     AngularGenerator.prototype.getOptions = function () {
-        var result = "\n            @Injectable()\n            export class ApiOptions {\n                public basePath: string = '/api';\n                public loginUrl: string;\n            }";
+        var result = "\n            @Injectable()\n            export class ApiOptions {\n                public basePath: string = '';\n                public loginUrl: string;\n            }";
         return result;
     };
     AngularGenerator.prototype.getBaseClass = function (config) {
         var returnType = config.usePromises ? 'Promise<T>' : 'Observable<T>';
         var toPromise = config.usePromises ? '.toPromise()' : '';
-        var result = "\n            export abstract class BaseApi {\n                constructor(public http: Http, public options: ApiOptions) {\n                }\n\n                protected request<T>(path: string, method: string, urlParams?: any, body?: any): " + returnType + " {\n                    let url = path;\n                    let search = new URLSearchParams();\n\n                    if (urlParams != undefined) {\n                        Object.getOwnPropertyNames(urlParams).forEach((paramName) => {\n                            if (url.indexOf(" + "`{${paramName}}`" + ") != -1) {\n                                url = url.replace(" + "`{${paramName}}`" + ", urlParams[paramName]);\n                            }\n                            else {\n                                this.addSearchParam(search, paramName, urlParams[paramName]);\n                            }\n                        });\n                    }\n\n                    let request = this.http.request(this.options.basePath + url, {\n                        body: body,\n                        method: method,\n                        search: search\n                    });\n\n                    return request\n                        .map(x => {\n                            var contentType = x.headers.get(\"content-type\");\n\n                            if (contentType && contentType.indexOf(\"application/json\") !== -1) {\n                                return x.json();\n                            }\n\n                            if (x.ok) {\n                                return null;\n                            }\n\n                            return x.text();\n                        })\n                        " + toPromise + ";\n                }\n\n                private addSearchParam(search: URLSearchParams, name: string, value: any): void {\n                    if (value instanceof Array) {\n                        value.forEach((v, i) => {\n                            this.addSearchParam(search, " + "`${name}[${i}]`" + ", v);\n                        });\n                    } else {\n                        if (value instanceof Date) {\n                            search.append(name, value.toUTCString());\n                        } else {\n                            if (value instanceof Object) {\n                                Object.getOwnPropertyNames(value).forEach((propertyName) => {\n                                    this.addSearchParam(search, " + "`${name}.${propertyName}`" + ", value[propertyName]);\n                                });\n                            }\n                            else {\n                                search.append(name, value);\n                            }\n                        }\n                    }\n                }\n            }";
+        var result = "\n            @Injectable()\n            export abstract class BaseApi {\n                private dateFormat = /^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.*/\n\n                constructor(public http: Http, public options: ApiOptions) {\n                    this.reviver = this.reviver.bind(this);\n                }\n\n                protected request<T>(path: string, method: string, urlParams?: any, body?: any): " + returnType + " {\n                    let url = path;\n                    let search = new URLSearchParams();\n\n                    if (urlParams != undefined) {\n                        Object.getOwnPropertyNames(urlParams).forEach((paramName) => {\n                            if (url.indexOf(" + "`{${paramName}}`" + ") != -1) {\n                                url = url.replace(" + "`{${paramName}}`" + ", urlParams[paramName]);\n                            }\n                            else {\n                                this.addSearchParam(search, paramName, urlParams[paramName]);\n                            }\n                        });\n                    }\n\n                    if (body != undefined) {\n                        Object.getOwnPropertyNames(body).forEach((paramName) => {\n                            this.addSearchParam(search, paramName, body[paramName]);\n                        });\n                    }                    \n\n                    let request = this.http.request(this.options.basePath + url, {\n                        method: method,\n                        search: search\n                    });\n\n                    return request\n                        .map(x => {\n                            var contentType = x.headers.get(\"content-type\");\n\n                            if (contentType && contentType.indexOf(\"application/json\") !== -1) {\n                                return this.parseJson(x.text());\n                            }\n\n                            if (x.ok) {\n                                return null;\n                            }\n\n                            return x.text();\n                        })\n                        " + toPromise + ";\n                }\n\n                private parseJson(text: string): any {\n                    return JSON.parse(text, this.reviver);\n                }\n\n                private reviver(key, value) {\n                    if (typeof value === \"string\" && this.dateFormat.test(value)) {\n                        return new Date(value);\n                    }\n\n                    return value;\n                }\n\n                private addSearchParam(search: URLSearchParams, name: string, value: any): void {\n                    if (value instanceof Array) {\n                        value.forEach((v, i) => {\n                            this.addSearchParam(search, " + "`${name}[${i}]`" + ", v);\n                        });\n                    } else {\n                        if (value instanceof Date) {\n                            search.append(name, value.toUTCString());\n                        } else {\n                            if (value instanceof Object) {\n                                Object.getOwnPropertyNames(value).forEach((propertyName) => {\n                                    this.addSearchParam(search, " + "`${name}.${propertyName}`" + ", value[propertyName]);\n                                });\n                            }\n                            else {\n                                search.append(name, value);\n                            }\n                        }\n                    }\n                }\n            }";
         return result;
     };
     AngularGenerator.prototype.getController = function (controller, config) {
@@ -48,37 +48,6 @@ var AngularGenerator = (function () {
             for (var _i = 0, _a = controller.operations; _i < _a.length; _i++) {
                 var operation = _a[_i];
                 operations.push(this.getOperation(operation, config));
-                // let name = this.camelCase(operation.name);
-                // let returnTypeArgument = this.mapType(operation.responseType);
-                // let returnType = config.usePromises ? `Promise<${returnTypeArgument}>` : `Observable<${returnTypeArgument}>`;
-                // let parameters: string[] = [];
-                // if (operation.parameters != undefined) {
-                //     for (let operationParameter of operation.parameters) {
-                //         let parameter = `${operationParameter.name}`;
-                //         if (!operationParameter.required && operationParameter.default == undefined) {
-                //             parameter += '?';
-                //         }
-                //         let parameterType = this.mapType(operationParameter.type);
-                //         parameter += `: ${parameterType}`;
-                //         if (operationParameter.default != undefined) {
-                //             let defaultValue = operationParameter.default;
-                //             if (parameterType == 'string') {
-                //                 defaultValue = `'${defaultValue}'`;
-                //             }
-                //             parameter += ` = ${defaultValue}`;
-                //         }
-                //         parameters.push(parameter);
-                //     }
-                // }
-                // //             let params: { name: string, type: string, fromBody: boolean, defaultValue?: string }[] = [];
-                // //             let bodyParam = 'undefined';
-                // let methodBody = '';
-                // let operationMethod = `
-                //     public ${name}(${parameters.join()}): ${returnType} {
-                //         return null;
-                //     }
-                // `;
-                // operations.push(operationMethod);
             }
         }
         var result = "\n            @Injectable()\n            export class " + controller.name + "Api extends BaseApi {\n                " + operations.join('') + "\n            }";
