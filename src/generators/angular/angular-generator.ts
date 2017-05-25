@@ -221,7 +221,7 @@ export class AngularGenerator {
 
         if (urlParams.length > 0 || bodyParam != undefined) {
             requestParameters += `, { ${urlParams} }`;
-        }   
+        }
 
         if (bodyParam != undefined) {
             requestParameters += `, ${bodyParam}`;
@@ -243,22 +243,22 @@ export class AngularGenerator {
     private getOperationParameter(operationParameter: OperationParameter): string {
         let parameter = operationParameter.name;
 
-        if (!operationParameter.required && operationParameter.default == undefined) {
-            parameter += '?';
-        }
-
         let parameterType = this.mapType(operationParameter.type);
 
         parameter += `: ${parameterType}`;
 
-        if (operationParameter.default != undefined) {
+        if (!operationParameter.required) {
             let defaultValue = operationParameter.default;
 
-            if (parameterType == 'string') {
-                defaultValue = `'${defaultValue}'`;
-            }
+            if (defaultValue == undefined) {
+                parameter += ` = undefined`;
+            } else {
+                if (parameterType == 'string') {
+                    defaultValue = `'${defaultValue}'`;
+                }
 
-            parameter += ` = ${defaultValue}`;
+                parameter += ` = ${defaultValue}`;
+            }
         }
 
         return parameter;

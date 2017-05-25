@@ -93,17 +93,19 @@ var AngularGenerator = (function () {
     };
     AngularGenerator.prototype.getOperationParameter = function (operationParameter) {
         var parameter = operationParameter.name;
-        if (!operationParameter.required && operationParameter.default == undefined) {
-            parameter += '?';
-        }
         var parameterType = this.mapType(operationParameter.type);
         parameter += ": " + parameterType;
-        if (operationParameter.default != undefined) {
+        if (!operationParameter.required) {
             var defaultValue = operationParameter.default;
-            if (parameterType == 'string') {
-                defaultValue = "'" + defaultValue + "'";
+            if (defaultValue == undefined) {
+                parameter += " = undefined";
             }
-            parameter += " = " + defaultValue;
+            else {
+                if (parameterType == 'string') {
+                    defaultValue = "'" + defaultValue + "'";
+                }
+                parameter += " = " + defaultValue;
+            }
         }
         return parameter;
     };
