@@ -116,9 +116,7 @@ export class AngularGenerator {
 
                     return request
                         .map(x => {
-                            var contentType = x.headers.get("content-type");
-
-                            if (contentType && contentType.indexOf("application/json") !== -1) {
+                            if (this.isJsonResponse(x)) {
                                 return this.parseJson(x.text());
                             }
 
@@ -128,7 +126,24 @@ export class AngularGenerator {
 
                             return x.text();
                         })
+                        .catch(x => {
+                            if (this.isJsonResponse(x)) {
+                                throw this.parseJson(x.text()).message;
+                            }
+
+                            throw x.text() || x.statusText;
+                        })                        
                         ` + toPromise + `;
+                }
+
+                private isJsonResponse(response: any): boolean {
+                    let contentType = response.headers.get("content-type");
+
+                    if (contentType && contentType.indexOf("application/json") !== -1) {
+                        return true;
+                    }
+
+                    return false;
                 }
 
                 private parseJson(text: string): any {
