@@ -13,18 +13,27 @@ try {
     config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
 }
 catch (e) {
-    console.log("WEBAPI-NG2: Can't load config " + configPath + ". " + e + ".");
+    console.log("WEBAPI-NG: Can't load config " + configPath + ". " + e + ".");
     process.exit(1);
 }
-new generator_1.Generator()
-    .configure(config)
-    .enableFormatting()
-    .build()
-    .then(function (_a) {
-    var path = _a[0], host = _a[1];
-    console.log("WEBAPI-NG2: Client generated at \"" + path + "\" from \"" + host + "\".");
-})
-    .catch(function (error) {
-    console.log("WEBAPI-NG2: " + error + ".");
-});
+if (config == undefined) {
+    throw Error("WEBAPI-NG: Config file is empty.");
+}
+if (!(config instanceof Array)) {
+    config = [config];
+}
+for (var _i = 0, config_1 = config; _i < config_1.length; _i++) {
+    var c = config_1[_i];
+    new generator_1.Generator()
+        .configure(c)
+        .enableFormatting()
+        .build()
+        .then(function (_a) {
+        var path = _a[0], host = _a[1];
+        console.log("WEBAPI-NG: Client generated at \"" + path + "\" from \"" + host + "\".");
+    })
+        .catch(function (error) {
+        console.log("WEBAPI-NG: " + error + ".");
+    });
+}
 //# sourceMappingURL=index.js.map
