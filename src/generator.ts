@@ -17,7 +17,7 @@ export class Generator {
     private _config?: GeneratorConfig;
     private _format = false;
     private _host?: string;
-    private _outputFile?: string;
+    private _outputFile: string;
     private _response?: any;
     private _server?: DotNetProcess;
     private _specification: Specification;
