@@ -119,10 +119,6 @@ export class AngularGenerator {
                                 return this.parseJson(x.text());
                             }
 
-                            if (x.ok) {
-                                return null;
-                            }
-
                             return x.text();
                         })
                         .catch(x => {
