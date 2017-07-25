@@ -119,7 +119,13 @@ export class AngularGenerator {
                                 return this.parseJson(x.text());
                             }
 
-                            return x.text();
+                            const text = x.text();
+
+                            if (text) {
+                                return text;
+                            }
+
+                            return undefined;
                         })
                         .catch(x => {
                             if (this.isJsonResponse(x)) {
