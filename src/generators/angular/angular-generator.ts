@@ -24,7 +24,7 @@ export class AngularGenerator {
         let script =
             this.getHeader() + '\n\r' +
             this.getImports() + '\n\r' +
-            this.getOptions() + '\n\r' +
+            this.getOptions(config) + '\n\r' +
             this.getBaseClass(config) + '\n\r';
 
         for (let controller of specification.controllers) {
@@ -57,6 +57,7 @@ export class AngularGenerator {
             import { Injectable } from '@angular/core';
             import { Http, ResponseContentType, URLSearchParams } from '@angular/http';
             import { Observable } from 'rxjs/Observable';
+            import 'rxjs/add/operator/catch';
             import 'rxjs/add/operator/map';
             import 'rxjs/add/operator/toPromise';
         `;
@@ -64,10 +65,10 @@ export class AngularGenerator {
         return result;
     }
 
-    private getOptions(): string {
+    private getOptions(config: GeneratorConfig): string {
         let result = `
             @Injectable()
-            export class ApiOptions {
+            export class ` + config.outputClass + `Options {
                 public basePath = '';
                 public loginUrl: string;
             }`;
@@ -81,7 +82,7 @@ export class AngularGenerator {
 
         let result = `
             @Injectable()
-            export abstract class BaseApi {
+            export abstract class ` + config.outputClass + `Base {
                 private dateFormat = /^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.*/;
 
                 constructor(public http: Http, public options: ApiOptions) {
@@ -102,13 +103,8 @@ export class AngularGenerator {
                         });
                     }
 
-                    if (body !== undefined) {
-                        Object.getOwnPropertyNames(body).forEach((paramName) => {
-                            this.addSearchParam(search, paramName, body[paramName]);
-                        });
-                    }
-
                     const request = this.http.request(this.options.basePath + url, {
+                        body: body,
                         method: method,
                         search: search
                     });
@@ -192,9 +188,15 @@ export class AngularGenerator {
             }
         }
 
+        let className = controller.name;
+
+        if (!className.endsWith('Service')) {
+            className += 'Service';
+        }
+
         let result = `
             @Injectable()
-            export class ${controller.name}Api extends BaseApi {
+            export class ${className} extends ` + config.outputClass + `Base {
                 ${operations.join('')}
             }`;
 
