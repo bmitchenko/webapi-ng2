@@ -85,7 +85,7 @@ export class AngularGenerator {
             export abstract class ` + config.outputClass + `Base {
                 private dateFormat = /^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.*/;
 
-                constructor(public http: Http, public options: ApiOptions) {
+                constructor(public http: Http, public options: ` + config.outputClass + `Options) {
                     this.reviver = this.reviver.bind(this);
                 }
 
