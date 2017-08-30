@@ -1,6 +1,6 @@
 {
   "name": "webapi-ng2",
-  "version": "0.0.20",
+  "version": "0.0.21",
   "description": "ASP.NET Core Web API client generator for Angular 2",
   "main": "index.js",
   "scripts": {
