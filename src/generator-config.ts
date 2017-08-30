@@ -36,4 +36,8 @@ export interface GeneratorConfig {
      * Use Promise<T> instead of Observable<T> in action results. Default is false.
      */
     usePromises?: boolean;
+
+    username?: string;
+
+    password?: string;
 }

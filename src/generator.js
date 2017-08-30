@@ -69,6 +69,12 @@ var Generator = (function () {
                 url: specificationUrl,
                 json: true
             };
+            if (_this._config != undefined && _this._config.username != undefined) {
+                options.auth = {
+                    user: _this._config.username,
+                    password: _this._config.password
+                };
+            }
             request(options, function (error, response, body) {
                 if (!error && response.statusCode === 200) {
                     _this._response = body;

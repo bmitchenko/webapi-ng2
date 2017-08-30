@@ -84,10 +84,17 @@ export class Generator {
         var specificationUrl = url.resolve(this._host, this._config!.path);
 
         return new Promise<any>((resolve, reject) => {
-            let options = {
+            let options: any = {
                 url: specificationUrl,
                 json: true
             };
+
+            if (this._config != undefined && this._config.username != undefined) {
+                options.auth = {
+                    user: this._config.username,
+                    password: this._config.password
+                };
+            }
 
             request(options, (error: any, response: any, body: any) => {
                 if (!error && response.statusCode === 200) {
