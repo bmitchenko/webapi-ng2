@@ -8,4 +8,3 @@ export interface Operation {
     path: string;
     summary?: string;
 }
-

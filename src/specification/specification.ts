@@ -5,4 +5,3 @@ export interface Specification {
     controllers: Controller[];
     schema?: Schema[];
 }
-

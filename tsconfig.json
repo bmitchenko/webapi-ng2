@@ -9,7 +9,8 @@
         "removeComments": false,
         "noImplicitAny": true,
         "suppressImplicitAnyIndexErrors": true,
-        "strictNullChecks": true
+        "strictNullChecks": true,
+        "newLine": "LF"
     },
     "exclude": [
         "./node_modules/**",

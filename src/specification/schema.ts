@@ -9,4 +9,3 @@ export interface Schema {
     type: SchemaType;
     values?: EnumValue[];
 }
-

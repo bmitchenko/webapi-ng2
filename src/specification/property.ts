@@ -6,3 +6,4 @@ export interface Property {
     nullable?: boolean;
     type: string;
 }
+

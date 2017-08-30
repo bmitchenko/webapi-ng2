@@ -41,4 +41,3 @@ export interface GeneratorConfig {
 
     password?: string;
 }
-

@@ -8,4 +8,3 @@ export { Property } from './property';
 export { Schema } from './schema';
 export { SchemaType } from './schema-type';
 export { Specification } from './specification';
-

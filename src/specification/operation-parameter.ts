@@ -5,3 +5,4 @@ export interface OperationParameter {
     default?: any;
     type: string;
 }
+

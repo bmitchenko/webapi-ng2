@@ -381,5 +381,5 @@
 //     private camelCase(text: string): string {
 //         return text.substr(0, 1).toLowerCase() + text.substr(1);
 //     }
-// }
+// } 
 //# sourceMappingURL=api-explorer-generator.js.map
