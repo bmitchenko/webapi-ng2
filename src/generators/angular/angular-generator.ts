@@ -485,3 +485,4 @@ export class AngularGenerator {
 //                 ${properties.join('\n')}
 //             }`;
 //     }
+

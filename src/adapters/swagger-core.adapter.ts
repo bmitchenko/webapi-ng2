@@ -72,3 +72,4 @@ export class SwaggerCoreAdapter {
         return specification;
     }
 }
+

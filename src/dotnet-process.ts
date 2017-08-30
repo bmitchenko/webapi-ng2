@@ -54,3 +54,4 @@ export class DotNetProcess {
         this._process = undefined;
     }
 }
+
