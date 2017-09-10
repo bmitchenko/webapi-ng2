@@ -125,7 +125,14 @@ export class AngularGenerator {
                         })
                         .catch(x => {
                             if (this.isJsonResponse(x)) {
-                                throw this.parseJson(x.text()).message;
+                                const errorJson = this.parseJson(x.text());
+                                const error = new Error(errorJson.message);
+
+                                if ('validationErrors' in errorJson) {
+                                    error['validationErrors'] = errorJson.validationErrors;
+                                }
+
+                                throw error;
                             }
 
                             throw x.text() || x.statusText;
