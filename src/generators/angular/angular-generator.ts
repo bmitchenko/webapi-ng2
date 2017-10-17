@@ -125,7 +125,13 @@ export class AngularGenerator {
                     let body = response.body;
             
                     if (typeof body === 'string') {
-                        body = this.parseJson(body);
+                        if (this.isJsonResponse(response)) {
+                            try {
+                                body = this.parseJson(body);
+                            }
+                            catch (e) {
+                            }
+                        }
                     }
             
                     if (body) {
