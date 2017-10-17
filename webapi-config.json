@@ -1,8 +1,0 @@
-{
-    "specification": "swagger-core",
-    "host": "http://localhost:49994",
-    "path": "/swagger/v1/swagger.json",
-    "outputFile": "./dist/api.service.ts",
-    "outputClass": "ApiService",
-    "usePromises": true
-}

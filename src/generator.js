@@ -9,7 +9,7 @@ var swagger_core_adapter_1 = require("./adapters/swagger-core.adapter");
 var angular_generator_1 = require("./generators/angular/angular-generator");
 var request = require("request");
 //var Promise = require('promise');
-var Generator = (function () {
+var Generator = /** @class */ (function () {
     function Generator() {
         this._format = false;
     }

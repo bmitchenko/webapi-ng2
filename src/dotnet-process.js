@@ -5,7 +5,7 @@ var killProcess = require('tree-kill');
 /**
  * Launches and teminates 'dotnet' process.
  */
-var DotNetProcess = (function () {
+var DotNetProcess = /** @class */ (function () {
     function DotNetProcess(_workingDirectory) {
         this._workingDirectory = _workingDirectory;
         this._isKilled = false;

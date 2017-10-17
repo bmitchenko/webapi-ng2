@@ -55,11 +55,11 @@ export class AngularGenerator {
     private getImports(): string {
         let result = `
             import { Injectable } from '@angular/core';
-            import { Http, ResponseContentType, URLSearchParams } from '@angular/http';
+            import { HttpClient, HttpParams, HttpEvent, HttpResponse, HttpErrorResponse, HttpRequest } from '@angular/common/http';
             import { Observable } from 'rxjs/Observable';
             import 'rxjs/add/operator/catch';
             import 'rxjs/add/operator/map';
-            import 'rxjs/add/operator/toPromise';
+            import 'rxjs/add/operator/toPromise';            
         `;
 
         return result;
@@ -85,101 +85,123 @@ export class AngularGenerator {
             export abstract class ` + config.outputClass + `Base {
                 private dateFormat = /^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.*/;
 
-                constructor(public http: Http, public options: ` + config.outputClass + `Options) {
+                constructor(public http: HttpClient, public options: ` + config.outputClass + `Options) {
                     this.reviver = this.reviver.bind(this);
                 }
 
-                protected request<T>(path: string, method: string, urlParams?: any, body?: any): ` + returnType + ` {
+                protected request<T>(path: string, method: string, urlParams?: any, body?: any): Promise<T> {
                     let url = path;
-                    const search = new URLSearchParams();
-
+                    let params = new HttpParams();
+            
                     if (urlParams !== undefined) {
                         Object.getOwnPropertyNames(urlParams).forEach((paramName) => {
                             if (url.indexOf(` + "`{${paramName}}`" + `) !== -1) {
                                 url = url.replace(` + "`{${paramName}}`" + `, urlParams[paramName]);
                             } else {
-                                this.addSearchParam(search, paramName, urlParams[paramName]);
+                                params = this.addSearchParam(params, paramName, urlParams[paramName]);
                             }
                         });
                     }
-
-                    const request = this.http.request(this.options.basePath + url, {
-                        body: body,
-                        method: method,
-                        search: search
+            
+                    const request = new HttpRequest<any>(method, this.options.basePath + url, body, {
+                        params: params
                     });
-
-                    return request
-                        .map(x => {
-                            if (this.isJsonResponse(x)) {
-                                return this.parseJson(x.text());
+            
+                    const promise = new Promise<any>((resolve, reject) => {
+                        this.http.request(request).subscribe((event: HttpEvent<any>) => {
+                            if (event instanceof HttpResponse) {
+                                resolve(this.extractBody(event));
                             }
-
-                            const text = x.text();
-
-                            if (text) {
-                                return text;
-                            }
-
-                            return undefined;
+                        }, (error: HttpErrorResponse) => {
+                            reject(this.extractError(error));
                         })
-                        .catch(x => {
-                            if (this.isJsonResponse(x)) {
-                                const errorJson = this.parseJson(x.text());
-                                const error = new Error(errorJson.message);
-
-                                if ('validationErrors' in errorJson) {
-                                    error['validationErrors'] = errorJson.validationErrors;
-                                }
-
-                                throw error;
-                            }
-
-                            throw x.text() || x.statusText;
-                        })
-                        ` + toPromise + `;
+                    });
+            
+                    return promise;
                 }
 
-                private isJsonResponse(response: any): boolean {
+                private extractBody(response: HttpResponse<any>): any {
+                    let body = response.body;
+            
+                    if (typeof body === 'string') {
+                        body = this.parseJson(body);
+                    }
+            
+                    if (body) {
+                        return body;
+                    }
+            
+                    return undefined;
+                }
+            
+                private extractError(response: HttpErrorResponse): Error {
+                    if (response.error instanceof Error) {
+                        return response.error;
+                    } else {
+                        if (this.isJsonResponse(response)) {
+                            let body = response['body'];
+            
+                            if (typeof body === 'string') {
+                                body = this.parseJson(body);
+                            }
+            
+                            const error = new Error(body.message);
+            
+                            if ('validationErrors' in body) {
+                                error['validationErrors'] = body.validationErrors;
+                            }
+            
+                            return error;
+                        } else {
+                            return new Error(response.error);
+                        }
+                    }
+                }
+            
+                private isJsonResponse(response: HttpResponse<any> | HttpErrorResponse): boolean {
                     const contentType = response.headers.get('content-type');
-
+            
                     if (contentType && contentType.indexOf('application/json') !== -1) {
                         return true;
                     }
-
+            
                     return false;
                 }
-
+            
                 private parseJson(text: string): any {
                     return JSON.parse(text, this.reviver);
                 }
-
-                private reviver(key, value) {
+            
+                private reviver(key: any, value: any) {
                     if (typeof value === 'string' && this.dateFormat.test(value)) {
                         return new Date(value);
                     }
-
+            
                     return value;
                 }
-
-                private addSearchParam(search: URLSearchParams, name: string, value: any): void {
+            
+                private addSearchParam(params: HttpParams, name: string, value: any): HttpParams {
                     if (value instanceof Array) {
                         value.forEach((v, i) => {
-                            this.addSearchParam(search, ` + "`${name}[${i}]`" + `, v);
+                            params = this.addSearchParam(params, ` + "`${name}[${i}]`" + `, v);
                         });
                     } else {
                         if (value instanceof Date) {
-                            search.append(name, value.toUTCString());
+                            params = params.append(name, value.toUTCString());
                         } else {
                             if (value instanceof Object) {
                                 Object.getOwnPropertyNames(value).forEach((propertyName) => {
-                                    this.addSearchParam(search, ` + "`${name}.${propertyName}`" + `, value[propertyName]);
+                                    params = this.addSearchParam(params, ` + "`${name}.${propertyName}`" + `, value[propertyName]);
                                 });
                             } else {
-                                search.append(name, value);
+                                if (value) {
+                                    params = params.append(name, value);
+                                }
                             }
                         }
                     }
+            
+                    return params;
                 }
             }`;
 
