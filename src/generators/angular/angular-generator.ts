@@ -104,7 +104,8 @@ export class AngularGenerator {
                     }
             
                     const request = new HttpRequest<any>(method, this.options.basePath + url, body, {
-                        params: params
+                        params: params,
+                        responseType: 'text'
                     });
             
                     const promise = new Promise<any>((resolve, reject) => {
@@ -139,7 +140,7 @@ export class AngularGenerator {
                         return response.error;
                     } else {
                         if (this.isJsonResponse(response)) {
-                            let body = response['body'];
+                            let body = response.error;
             
                             if (typeof body === 'string') {
                                 body = this.parseJson(body);
