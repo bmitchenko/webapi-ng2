@@ -55,7 +55,7 @@ export class AngularGenerator {
     private getImports(): string {
         let result = `
             import { Injectable } from '@angular/core';
-            import { HttpClient, HttpParams, HttpEvent, HttpResponse, HttpErrorResponse, HttpRequest } from '@angular/common/http';
+            import { HttpClient, HttpParams, HttpEvent, HttpResponse, HttpErrorResponse, HttpRequest, HttpHeaders } from '@angular/common/http';
             import { Observable } from 'rxjs/Observable';
             import 'rxjs/add/operator/catch';
             import 'rxjs/add/operator/map';
@@ -104,6 +104,7 @@ export class AngularGenerator {
                     }
             
                     const request = new HttpRequest<any>(method, this.options.basePath + url, body, {
+                        headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
                         params: params,
                         responseType: 'text'
                     });
