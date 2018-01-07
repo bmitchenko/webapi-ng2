@@ -32,9 +32,19 @@ export class AngularGenerator {
         }
 
         if (specification.schema != undefined) {
+            const enumTypes: Schema[] = [];
+
             for (let schemaName in specification.schema) {
                 let schema = specification.schema[schemaName];
                 script += '\n\r' + this.getSchema(schema);
+
+                if (schema.type == SchemaType.Enumeration) {
+                    enumTypes.push(schema);
+                }
+            }
+
+            if (enumTypes.length > 0) {
+                script += '\n\r' + this.getEnumService(enumTypes);
             }
         }
 
@@ -75,6 +85,137 @@ export class AngularGenerator {
             }`;
 
         return result;
+    }
+
+    private getEnumService(enumTypes: Schema[]): string {
+        const enumMetadata: string[] = [];
+
+        for (const enumType of enumTypes) {
+            let displayName: string | undefined;
+
+            if (enumType.attributes != undefined) {
+                displayName = this.getDisplayName(enumType.attributes);
+            }
+
+            if (displayName == undefined) {
+                displayName = enumType.name;
+            }
+
+            let values: string[] = [];
+
+            if (enumType.values != undefined) {
+                for (const enumValue of enumType.values) {
+                    let valueDisplayName: string | undefined;
+
+                    if (enumValue.attributes != undefined) {
+                        valueDisplayName = this.getDisplayName(enumValue.attributes);
+                    }
+
+                    if (valueDisplayName == undefined) {
+                        valueDisplayName = enumValue.name;
+                    }
+
+                    values.push(`{ value: ${enumType.name}.${enumValue.name}, displayName: '${valueDisplayName}' }`);
+                }
+            }
+
+            enumMetadata.push(`
+                {
+                    type: ${enumType.name},
+                    displayName: '${displayName}',
+                    values: [
+                        ${values.join(',\r')}
+                    ]
+                }`);
+        }
+
+        let result = `
+            export interface EnumValue<T> {
+                displayName: string;
+                value: T;
+            }
+    
+            interface EnumMetadata<T> {
+                displayName: string;
+                type: any;
+                values: EnumValue<T>[];
+            }
+
+            export const ENUM_METADATA: EnumMetadata<any>[] = [
+                ${enumMetadata.join(',')}
+            ];
+
+            @Injectable()
+            export class EnumService {
+                public getEnumDisplayName(enumType: any): string {
+                    const metadata = this.findEnum<any>(enumType);
+                    
+                    return metadata.displayName;
+                }
+        
+                public getEnumValueDisplayName(enumType: any, enumValue: number | string): string {
+                    const metadata = this.findEnum<any>(enumType);
+        
+                    const value = metadata.values.find(x => x.value === enumValue);
+        
+                    if (value == undefined) {
+                        return enumType[enumValue];
+                    }
+        
+                    return value.displayName;
+                }
+        
+                public getEnumFlagValueDisplayName(enumType: any, enumValue: number): string {
+                    const metadata = this.findEnum<any>(enumType);
+        
+                    const exactValue = metadata.values.find(x => x.value === enumValue);
+        
+                    if (exactValue != undefined) {
+                        return exactValue.displayName;
+                    }
+        
+                    const result = metadata.values
+                        // tslint:disable-next-line:no-bitwise
+                        .filter(x => x.value !== 0 && (x.value & enumValue) === x.value)
+                        .map(x => x.displayName);
+        
+                    return result.join(', ');
+                }
+        
+                public getEnumValues<T>(enumType: any): EnumValue<T>[] {
+                    const metadata = this.findEnum<any>(enumType);
+                    
+                    return metadata.values;
+                }
+        
+                private findEnum<T>(enumType: any): EnumMetadata<T> {
+                    const metadata = ENUM_METADATA.find(x => x.type === enumType);
+        
+                    if (metadata == undefined) {
+                        throw Error('Metadata for enum type not found.');
+                    }
+        
+                    return metadata;
+                }            
+            }`;
+
+        return result;
+    }
+
+    private getDisplayName(attributes: Attribute[]): string | undefined {
+        const displayAttribute = attributes.find(x => x.name == 'DisplayName');
+
+        if (displayAttribute != undefined) {
+            if (displayAttribute.parameters != undefined) {
+                const nameParameter = displayAttribute.parameters.find(x => x.name == 'displayName');
+
+                if (nameParameter != undefined) {
+                    return nameParameter.value;
+                }
+            }
+        }
+
+        return undefined;
     }
 
     private getBaseClass(config: GeneratorConfig): string {

@@ -17,9 +17,16 @@ var AngularGenerator = /** @class */ (function () {
             script += '\n\r' + this.getController(controller, config);
         }
         if (specification.schema != undefined) {
+            var enumTypes = [];
             for (var schemaName in specification.schema) {
                 var schema = specification.schema[schemaName];
                 script += '\n\r' + this.getSchema(schema);
+                if (schema.type == specification_1.SchemaType.Enumeration) {
+                    enumTypes.push(schema);
+                }
+            }
+            if (enumTypes.length > 0) {
+                script += '\n\r' + this.getEnumService(enumTypes);
             }
         }
         return script;
@@ -35,6 +42,48 @@ var AngularGenerator = /** @class */ (function () {
     AngularGenerator.prototype.getOptions = function (config) {
         var result = "\n            @Injectable()\n            export class " + config.outputClass + "Options {\n                public basePath = '';\n                public loginUrl: string;\n            }";
         return result;
+    };
+    AngularGenerator.prototype.getEnumService = function (enumTypes) {
+        var enumMetadata = [];
+        for (var _i = 0, enumTypes_1 = enumTypes; _i < enumTypes_1.length; _i++) {
+            var enumType = enumTypes_1[_i];
+            var displayName = void 0;
+            if (enumType.attributes != undefined) {
+                displayName = this.getDisplayName(enumType.attributes);
+            }
+            if (displayName == undefined) {
+                displayName = enumType.name;
+            }
+            var values = [];
+            if (enumType.values != undefined) {
+                for (var _a = 0, _b = enumType.values; _a < _b.length; _a++) {
+                    var enumValue = _b[_a];
+                    var valueDisplayName = void 0;
+                    if (enumValue.attributes != undefined) {
+                        valueDisplayName = this.getDisplayName(enumValue.attributes);
+                    }
+                    if (valueDisplayName == undefined) {
+                        valueDisplayName = enumValue.name;
+                    }
+                    values.push("{ value: " + enumType.name + "." + enumValue.name + ", displayName: '" + valueDisplayName + "' }");
+                }
+            }
+            enumMetadata.push("\n                {\n                    type: " + enumType.name + ",\n                    displayName: '" + displayName + "',\n                    values: [\n                        " + values.join(',\r') + "\n                    ]\n                }");
+        }
+        var result = "\n            export interface EnumValue<T> {\n                displayName: string;\n                value: T;\n            }\n    \n            interface EnumMetadata<T> {\n                displayName: string;\n                type: any;\n                values: EnumValue<T>[];\n            }\n\n            export const ENUM_METADATA: EnumMetadata<any>[] = [\n                " + enumMetadata.join(',') + "\n            ];\n\n            @Injectable()\n            export class EnumService {\n                public getEnumDisplayName(enumType: any): string {\n                    const metadata = this.findEnum<any>(enumType);\n                    \n                    return metadata.displayName;\n                }\n        \n                public getEnumValueDisplayName(enumType: any, enumValue: number | string): string {\n                    const metadata = this.findEnum<any>(enumType);\n        \n                    const value = metadata.values.find(x => x.value === enumValue);\n        \n                    if (value == undefined) {\n                        return enumType[enumValue];\n                    }\n        \n                    return value.displayName;\n                }\n        \n                public getEnumFlagValueDisplayName(enumType: any, enumValue: number): string {\n                    const metadata = this.findEnum<any>(enumType);\n        \n                    const exactValue = metadata.values.find(x => x.value === enumValue);\n        \n                    if (exactValue != undefined) {\n                        return exactValue.displayName;\n                    }\n        \n                    const result = metadata.values\n                        // tslint:disable-next-line:no-bitwise\n                        .filter(x => x.value !== 0 && (x.value & enumValue) === x.value)\n                        .map(x => x.displayName);\n        \n                    return result.join(', ');\n                }\n        \n                public getEnumValues<T>(enumType: any): EnumValue<T>[] {\n                    const metadata = this.findEnum<any>(enumType);\n                    \n                    return metadata.values;\n                }\n        \n                private findEnum<T>(enumType: any): EnumMetadata<T> {\n                    const metadata = ENUM_METADATA.find(x => x.type === enumType);\n        \n                    if (metadata == undefined) {\n                        throw Error('Metadata for enum type not found.');\n                    }\n        \n                    return metadata;\n                }            \n            }";
+        return result;
+    };
+    AngularGenerator.prototype.getDisplayName = function (attributes) {
+        var displayAttribute = attributes.find(function (x) { return x.name == 'DisplayName'; });
+        if (displayAttribute != undefined) {
+            if (displayAttribute.parameters != undefined) {
+                var nameParameter = displayAttribute.parameters.find(function (x) { return x.name == 'displayName'; });
+                if (nameParameter != undefined) {
+                    return nameParameter.value;
+                }
+            }
+        }
+        return undefined;
     };
     AngularGenerator.prototype.getBaseClass = function (config) {
         var returnType = config.usePromises ? 'Promise<T>' : 'Observable<T>';

@@ -31,6 +31,7 @@ var SwaggerCoreAdapter = /** @class */ (function () {
         for (var coreTypeName in coreTypes) {
             var coreType = coreTypes[coreTypeName];
             schema.push({
+                attributes: coreType.attributes,
                 extends: coreType.extends,
                 name: coreType.name,
                 properties: coreType.properties,

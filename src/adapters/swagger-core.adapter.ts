@@ -47,6 +47,7 @@ export class SwaggerCoreAdapter {
             let coreType = coreTypes[coreTypeName];
 
             schema.push({
+                attributes: coreType.attributes,
                 extends: coreType.extends,
                 name: coreType.name,
                 properties: coreType.properties,
