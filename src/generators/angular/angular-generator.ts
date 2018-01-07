@@ -147,42 +147,30 @@ export class AngularGenerator {
 
             @Injectable()
             export class EnumService {
-                public getEnumDisplayName(enumType: any): string {
+                public getDisplayName(enumType: any): string {
                     const metadata = this.findEnum<any>(enumType);
                     
                     return metadata.displayName;
                 }
         
-                public getEnumValueDisplayName(enumType: any, enumValue: number | string): string {
+                public getValueDisplayName(enumType: any, enumValue: number): string {
                     const metadata = this.findEnum<any>(enumType);
-        
-                    const value = metadata.values.find(x => x.value === enumValue);
-        
-                    if (value == undefined) {
-                        return enumType[enumValue];
-                    }
-        
-                    return value.displayName;
-                }
-        
-                public getEnumFlagValueDisplayName(enumType: any, enumValue: number): string {
-                    const metadata = this.findEnum<any>(enumType);
-        
+
                     const exactValue = metadata.values.find(x => x.value === enumValue);
-        
+            
                     if (exactValue != undefined) {
                         return exactValue.displayName;
                     }
-        
+            
                     const result = metadata.values
                         // tslint:disable-next-line:no-bitwise
                         .filter(x => x.value !== 0 && (x.value & enumValue) === x.value)
                         .map(x => x.displayName);
-        
+            
                     return result.join(', ');
                 }
         
-                public getEnumValues<T>(enumType: any): EnumValue<T>[] {
+                public getValues<T>(enumType: any): EnumValue<T>[] {
                     const metadata = this.findEnum<any>(enumType);
                     
                     return metadata.values;
