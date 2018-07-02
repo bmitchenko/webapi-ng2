@@ -268,11 +268,7 @@ export class AngularGenerator {
                         }
                     }
             
-                    if (body) {
-                        return body;
-                    }
-            
-                    return undefined;
+                    return body;
                 }
             
                 private extractError(response: HttpErrorResponse): Error {
