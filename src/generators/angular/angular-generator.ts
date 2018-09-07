@@ -67,10 +67,6 @@ export class AngularGenerator {
         let result = `
             import { Injectable } from '@angular/core';
             import { HttpClient, HttpParams, HttpEvent, HttpResponse, HttpErrorResponse, HttpRequest, HttpHeaders } from '@angular/common/http';
-            import { Observable } from 'rxjs/Observable';
-            import 'rxjs/add/operator/catch';
-            import 'rxjs/add/operator/map';
-            import 'rxjs/add/operator/toPromise';            
         `;
 
         return result;
@@ -82,6 +78,7 @@ export class AngularGenerator {
             export class ` + config.outputClass + `Options {
                 public basePath = '';
                 public loginUrl: string;
+                public dateSerialization: 'local' | 'utc' = 'utc';
             }`;
 
         return result;
@@ -232,6 +229,8 @@ export class AngularGenerator {
                             }
                         });
                     }
+
+                    body = this.serializeBody(body);
             
                     const request = new HttpRequest<any>(method, this.options.basePath + url, body, {
                         headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
@@ -294,7 +293,33 @@ export class AngularGenerator {
                         }
                     }
                 }
+
+                private serializeBody(body?: any) {
+                    if (body == undefined) {
+                        return body;
+                    }
             
+                    if (typeof body !== 'object') {
+                        return body;
+                    }
+            
+                    return JSON.stringify(body, (key, value) => {
+                        if (typeof value === 'string' && this.dateFormat.test(value)) {
+                            return this.serializeDate(new Date(value));
+                        }
+            
+                        return value;
+                    });
+                }
+            
+                private serializeDate(d: Date): string {
+                    if (this.options.dateSerialization === 'local') {
+                        return d.toLocaleDateString('en-US') + ' ' + d.toLocaleTimeString('en-US', { hour12: false });
+                    } else {
+                        return d.toJSON();
+                    }
+                }
+
                 private isJsonResponse(response: HttpResponse<any> | HttpErrorResponse): boolean {
                     const contentType = response.headers.get('content-type');
             

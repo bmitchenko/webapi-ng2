@@ -1,25 +1,30 @@
 {
+    "compileOnSave": false,
     "compilerOptions": {
-        "target": "es5",
-        "module": "commonjs",
-        "moduleResolution": "node",
+        "baseUrl": "src",
+        "outDir": "./dist/out-tsc",
         "sourceMap": true,
+        "declaration": false,
+        "moduleResolution": "node",
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true,
-        "removeComments": false,
-        "noImplicitAny": true,
-        "suppressImplicitAnyIndexErrors": true,
-        "strictNullChecks": true,
-        "newLine": "LF"
+        "target": "es5",
+        "importHelpers": true,
+        "plugins": [
+            {
+                "alwaysShowRuleFailuresAsWarnings": true,
+                "name": "tslint-language-service"
+            }
+        ],
+        "typeRoots": [
+            "node_modules/@types"
+        ],
+        "lib": [
+            "es2017",
+            "dom"
+        ]
     },
-    "exclude": [
-        "./node_modules/**",
-        "./dist/**"
-    ],
-    "typeRoots": [
-   //     "../node_modules/@types"
-    ],
-    "types": [
-        "core-js"
+    "include": [
+        "./src/**/*",
     ]
 }

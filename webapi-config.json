@@ -1,0 +1,10 @@
+[
+    {
+        "specification": "swagger-core",
+        "host": "http://localhost:51096",
+        "path": "/swagger/v1/swagger.json",
+        "outputFile": "c:\\Packages\\webapi-ng2\\test-client.ts",
+        "outputClass": "ToolsService",
+        "usePromises": true
+    }
+]
