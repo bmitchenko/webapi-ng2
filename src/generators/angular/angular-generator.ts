@@ -311,14 +311,26 @@ export class AngularGenerator {
                         return value;
                     });
                 }
-            
+    
                 private serializeDate(d: Date): string {
+                    let result: string;
+            
+                    const n = x => x < 10 ? '0' + x.toString() : x.toString();
+            
                     if (this.options.dateSerialization === 'local') {
-                        return d.toLocaleDateString('en-US') + ' ' + d.toLocaleTimeString('en-US', { hour12: false });
+                        result =
+                            n(d.getMonth() + 1) + '/' +
+                            n(d.getDate()) + '/' +
+                            d.getFullYear() + ' ' +
+                            n(d.getHours()) + ':' +
+                            n(d.getMinutes()) + ':' +
+                            n(d.getSeconds());
                     } else {
-                        return d.toJSON();
+                        result = d.toJSON();
                     }
-                }
+            
+                    return result;
+                }                
 
                 private isJsonResponse(response: HttpResponse<any> | HttpErrorResponse): boolean {
                     const contentType = response.headers.get('content-type');
