@@ -352,10 +352,16 @@ export class AngularGenerator {
             
                 private reviver(key: any, value: any) {
                     if (typeof value === 'string' && this.dateFormat.test(value)) {
-                        return new Date(value);
+                        return this.parseDate(value);
                     }
             
                     return value;
+                }
+            
+                private parseDate(s: string): Date {
+                    const a = s.split(/[^0-9]/) as any;
+                    const d = new Date(a[0], a[1] - 1, a[2], a[3], a[4], a[5]);
+                    return d;
                 }
             
                 private addSearchParam(params: HttpParams, name: string, value: any): HttpParams {
