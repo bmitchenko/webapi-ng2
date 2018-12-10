@@ -283,6 +283,10 @@ export class AngularGenerator {
             
                             const error = new Error(body.message);
             
+                            if ('errorCode' in body) {
+                                error['errorCode'] = body.errorCode;
+                            }
+                                                        
                             if ('validationErrors' in body) {
                                 error['validationErrors'] = body.validationErrors;
                             }
