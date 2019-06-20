@@ -378,7 +378,7 @@ export class AngularGenerator {
                                     params = this.addSearchParam(params, ` + "`${name}.${propertyName}`" + `, value[propertyName]);
                                 });
                             } else {
-                                if (value) {
+                                if (value != undefined) {
                                     params = params.append(name, value);
                                 }
                             }
