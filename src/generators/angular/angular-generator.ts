@@ -271,8 +271,10 @@ export class AngularGenerator {
                 }
             
                 private extractError(response: HttpErrorResponse): Error {
+                    let error: Error;
+
                     if (response.error instanceof Error) {
-                        return response.error;
+                        error = response.error;
                     } else {
                         if (this.isJsonResponse(response)) {
                             let body = response.error;
@@ -281,21 +283,23 @@ export class AngularGenerator {
                                 body = this.parseJson(body);
                             }
             
-                            const error = new Error(body.message);
+                            error = new Error(body.message);
             
                             if ('errorCode' in body) {
                                 error['errorCode'] = body.errorCode;
                             }
-                                                        
+            
                             if ('validationErrors' in body) {
                                 error['validationErrors'] = body.validationErrors;
                             }
-            
-                            return error;
                         } else {
-                            return new Error(response.error);
+                            error = new Error(response.error);
                         }
                     }
+            
+                    error['httpStatusCode'] = response.status;
+            
+                    return error;
                 }
 
                 private serializeBody(body?: any) {
