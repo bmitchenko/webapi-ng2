@@ -29,10 +29,16 @@ export class SwaggerCoreAdapter {
 
                 let controller = controllerOperations[controllerName];
 
+                let parameters = operation['core:parameters'];
+
+                if (parameters != undefined && typeof parameters === 'string') {
+                    parameters = JSON.parse(parameters);
+                }
+
                 controller.push({
                     method: method,
                     name: operationName,
-                    parameters: operation['core:parameters'],
+                    parameters: parameters,
                     path: pathKey,
                     responseType: operation['core:return-type'],
                     summary: operation['summary']
@@ -42,6 +48,10 @@ export class SwaggerCoreAdapter {
 
         let schema: Schema[] = [];
         let coreTypes = response['core:types'];
+
+        if (typeof coreTypes === 'string') {
+            coreTypes = JSON.parse(coreTypes);
+        }
 
         for (let coreTypeName in coreTypes) {
             let coreType = coreTypes[coreTypeName];
