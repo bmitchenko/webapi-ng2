@@ -16,10 +16,14 @@ var SwaggerCoreAdapter = /** @class */ (function () {
                     controllerOperations[controllerName] = [];
                 }
                 var controller = controllerOperations[controllerName];
+                var parameters = operation['core:parameters'];
+                if (parameters != undefined && typeof parameters === 'string') {
+                    parameters = JSON.parse(parameters);
+                }
                 controller.push({
                     method: method,
                     name: operationName,
-                    parameters: operation['core:parameters'],
+                    parameters: parameters,
                     path: pathKey,
                     responseType: operation['core:return-type'],
                     summary: operation['summary']
@@ -30,6 +34,9 @@ var SwaggerCoreAdapter = /** @class */ (function () {
         var coreTypes = response['core:types'];
         for (var coreTypeName in coreTypes) {
             var coreType = coreTypes[coreTypeName];
+            if (typeof coreType === 'string') {
+                coreType = JSON.parse(coreType);
+            }
             schema.push({
                 attributes: coreType.attributes,
                 extends: coreType.extends,

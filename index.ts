@@ -36,6 +36,7 @@ for (let c of config) {
             console.log(`WEBAPI-NG: Client generated at "${path}" from "${host}".`);
         })
         .catch((error) => {
+            console.error(error);
             console.log(`WEBAPI-NG: ${error}.`);
         });
 }

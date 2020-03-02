@@ -49,12 +49,12 @@ export class SwaggerCoreAdapter {
         let schema: Schema[] = [];
         let coreTypes = response['core:types'];
 
-        if (typeof coreTypes === 'string') {
-            coreTypes = JSON.parse(coreTypes);
-        }
-
         for (let coreTypeName in coreTypes) {
             let coreType = coreTypes[coreTypeName];
+
+            if (typeof coreType === 'string') {
+                coreType = JSON.parse(coreType);
+            }
 
             schema.push({
                 attributes: coreType.attributes,
