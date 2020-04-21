@@ -40,4 +40,6 @@ export interface GeneratorConfig {
     username?: string;
 
     password?: string;
+
+    suffix?: string;
 }

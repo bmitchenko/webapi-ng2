@@ -408,7 +408,8 @@ export class AngularGenerator {
         let className = controller.name;
 
         if (!className.endsWith('Service')) {
-            className += 'Service';
+            const suffix = config.suffix == undefined ? 'Service' : config.suffix;
+            className += suffix;
         }
 
         let result = `
