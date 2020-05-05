@@ -100,10 +100,8 @@ var AngularGenerator = /** @class */ (function () {
             }
         }
         var className = controller.name;
-        if (!className.endsWith('Service')) {
-            var suffix = config.suffix == undefined ? 'Service' : config.suffix;
-            className += suffix;
-        }
+        var suffix = config.suffix == undefined ? 'Service' : config.suffix;
+        className += suffix;
         var result = "\n            @Injectable()\n            export class " + className + " extends " + config.outputClass + ("Base {\n                " + operations.join('') + "\n            }");
         return result;
     };

@@ -407,10 +407,8 @@ export class AngularGenerator {
 
         let className = controller.name;
 
-        if (!className.endsWith('Service')) {
-            const suffix = config.suffix == undefined ? 'Service' : config.suffix;
-            className += suffix;
-        }
+        const suffix = config.suffix == undefined ? 'Service' : config.suffix;
+        className += suffix;
 
         let result = `
             @Injectable()
