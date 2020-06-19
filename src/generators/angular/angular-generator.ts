@@ -200,6 +200,30 @@ export class AngularGenerator {
             }
         }
 
+        const descriptionAttribute = attributes.find(x => x.name == 'Description');
+
+        if (descriptionAttribute != undefined) {
+            if (descriptionAttribute.parameters != undefined) {
+                const nameParameter = descriptionAttribute.parameters.find(x => x.name == 'description');
+
+                if (nameParameter != undefined) {
+                    return nameParameter.value;
+                }
+            }
+        }
+
+        const displayNameAttribute = attributes.find(x => x.name == 'Display');
+
+        if (displayNameAttribute != undefined) {
+            if (displayNameAttribute.parameters != undefined) {
+                const nameParameter = displayNameAttribute.parameters.find(x => x.name == 'Name');
+
+                if (nameParameter != undefined) {
+                    return nameParameter.value;
+                }
+            }
+        }
+
         return undefined;
     }
 

@@ -83,6 +83,24 @@ var AngularGenerator = /** @class */ (function () {
                 }
             }
         }
+        var descriptionAttribute = attributes.find(function (x) { return x.name == 'Description'; });
+        if (descriptionAttribute != undefined) {
+            if (descriptionAttribute.parameters != undefined) {
+                var nameParameter = descriptionAttribute.parameters.find(function (x) { return x.name == 'description'; });
+                if (nameParameter != undefined) {
+                    return nameParameter.value;
+                }
+            }
+        }
+        var displayNameAttribute = attributes.find(function (x) { return x.name == 'Display'; });
+        if (displayNameAttribute != undefined) {
+            if (displayNameAttribute.parameters != undefined) {
+                var nameParameter = displayNameAttribute.parameters.find(function (x) { return x.name == 'Name'; });
+                if (nameParameter != undefined) {
+                    return nameParameter.value;
+                }
+            }
+        }
         return undefined;
     };
     AngularGenerator.prototype.getBaseClass = function (config) {
