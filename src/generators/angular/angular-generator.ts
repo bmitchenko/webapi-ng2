@@ -67,6 +67,8 @@ export class AngularGenerator {
         let result = `
             import { Injectable } from '@angular/core';
             import { HttpClient, HttpParams, HttpEvent, HttpResponse, HttpErrorResponse, HttpRequest, HttpHeaders } from '@angular/common/http';
+            import { map, filter, catchError } from 'rxjs/operators';
+            import { Observable, throwError } from 'rxjs';
         `;
 
         return result;
@@ -228,9 +230,6 @@ export class AngularGenerator {
     }
 
     private getBaseClass(config: GeneratorConfig): string {
-        let returnType = config.usePromises ? 'Promise<T>' : 'Observable<T>';
-        let toPromise = config.usePromises ? '.toPromise()' : '';
-
         let result = `
             @Injectable()
             export abstract class ` + config.outputClass + `Base {
@@ -240,44 +239,7 @@ export class AngularGenerator {
                     this.reviver = this.reviver.bind(this);
                 }
 
-                protected request<T>(path: string, method: string, urlParams?: any, body?: any): Promise<T> {
-                    let url = path;
-                    let params = new HttpParams();
-            
-                    if (urlParams !== undefined) {
-                        Object.getOwnPropertyNames(urlParams).forEach((paramName) => {
-                            if (url.indexOf(` + "`{${paramName}}`" + `) !== -1) {
-                                url = url.replace(` + "`{${paramName}}`" + `, urlParams[paramName]);
-                            } else {
-                                params = this.addSearchParam(params, paramName, urlParams[paramName]);
-                            }
-                        });
-                    }
-
-                    body = this.serializeBody(body);
-            
-                    const request = new HttpRequest<any>(method, this.options.basePath + url, body, {
-                        headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
-                        params: params,
-                        responseType: 'text'
-                    });
-            
-                    const promise = new Promise<any>((resolve, reject) => {
-                        this.http.request(request).subscribe((event: HttpEvent<any>) => {
-                            if (event instanceof HttpResponse) {
-                                resolve(this.extractBody(event));
-                            }
-                        }, (error: HttpErrorResponse | Error) => {
-                            if (error instanceof Error) {
-                                reject(error);
-                            } else {
-                                reject(this.extractError(error));
-                            }
-                        });
-                    });
-            
-                    return promise;
-                }
+                ${this.getRequestMethod(config)}
 
                 private extractBody(response: HttpResponse<any>): any {
                     let body = response.body;
@@ -416,6 +378,52 @@ export class AngularGenerator {
                     return params;
                 }
             }`;
+
+        return result;
+    }
+
+    private getRequestMethod(config: GeneratorConfig): string {
+        let returnType = config.usePromises ? 'Promise<T>' : 'Observable<T>';
+
+        let request = `
+            const result = this.http.request(request)
+                .pipe(
+                    filter((event: HttpEvent<any>) => event instanceof HttpResponse),
+                    map((event: HttpResponse<any>) => {
+                        return this.extractBody(event);
+                    }),
+                    catchError((error: HttpErrorResponse) => {
+                        return throwError(this.extractError(error));
+                    })
+                );`;
+
+        let result = `
+                protected request<T>(path: string, method: string, urlParams?: any, body?: any): ${returnType} {
+                    let url = path;
+                    let params = new HttpParams();
+            
+                    if (urlParams !== undefined) {
+                        Object.getOwnPropertyNames(urlParams).forEach((paramName) => {
+                            if (url.indexOf(` + "`{${paramName}}`" + `) !== -1) {
+                                url = url.replace(` + "`{${paramName}}`" + `, urlParams[paramName]);
+                            } else {
+                                params = this.addSearchParam(params, paramName, urlParams[paramName]);
+                            }
+                        });
+                    }
+
+                    body = this.serializeBody(body);
+            
+                    const request = new HttpRequest<any>(method, this.options.basePath + url, body, {
+                        headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
+                        params: params,
+                        responseType: 'text'
+                    });
+            
+                    ${request}
+            
+                    return ${config.usePromises ? 'result.toPromise()' : 'result'};
+                }`;
 
         return result;
     }
