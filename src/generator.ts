@@ -149,7 +149,7 @@ export class Generator {
 
     private formatScript(): Promise<any> {
         if (this._format) {
-            execSync('tsfmt -r ' + this._outputFile);
+            execSync('tsfmt --no-tsconfig -r ' + this._outputFile);
         }
 
         return Promise.resolve();

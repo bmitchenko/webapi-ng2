@@ -120,7 +120,7 @@ var Generator = /** @class */ (function () {
     };
     Generator.prototype.formatScript = function () {
         if (this._format) {
-            child_process_1.execSync('tsfmt -r ' + this._outputFile);
+            child_process_1.execSync('tsfmt --no-tsconfig -r ' + this._outputFile);
         }
         return Promise.resolve();
     };
