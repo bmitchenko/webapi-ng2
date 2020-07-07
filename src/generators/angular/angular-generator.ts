@@ -76,6 +76,20 @@ export class AngularGenerator {
 
     private getOptions(config: GeneratorConfig): string {
         let result = `
+            export class HttpError extends Error {
+                detail?: string;
+                error?: any;
+                status: number;
+                title?: string;
+                traceId?: string;
+                type?: string;
+                url: string;
+          
+                constructor(message?: string) {
+                    super(message);
+                }
+            }
+
             @Injectable()
             export class ` + config.outputClass + `Options {
                 public basePath = '';
@@ -257,36 +271,49 @@ export class AngularGenerator {
                 }
             
                 private extractError(response: HttpErrorResponse): Error {
-                    let error: Error;
-
-                    if (response.error instanceof Error) {
-                        error = response.error;
+                    const error = new HttpError(response.message);
+                
+                    error.status = response.status;
+                    error.url = response.url;
+                
+                    const contentType = response.headers.get('content-type');
+                
+                    if (contentType?.includes('application/problem+json')) {
+                      const problemDetail = JSON.parse(response.error);
+                
+                      if (problemDetail.detail != null) {
+                        error.detail = problemDetail.detail;
+                      }
+                
+                      if (problemDetail.error != null || problemDetail.errors != null) {
+                        error.error = problemDetail.error ?? problemDetail.errors;
+                      }
+                
+                      if (problemDetail.title != null) {
+                        error.title = problemDetail.title;
+                      }
+                
+                      if (problemDetail.traceId != null) {
+                        error.traceId = problemDetail.traceId;
+                      }
+                
+                      if (problemDetail.type != null) {
+                        error.type = problemDetail.type;
+                      }
                     } else {
+                      if (typeof response.error === 'string') {
+                        error.title = response.error;
+                      } else {
                         if (this.isJsonResponse(response)) {
-                            let body = response.error;
-            
-                            if (typeof body === 'string') {
-                                body = this.parseJson(body);
-                            }
-            
-                            error = new Error(body.message);
-            
-                            if ('errorCode' in body) {
-                                error['errorCode'] = body.errorCode;
-                            }
-            
-                            if ('validationErrors' in body) {
-                                error['validationErrors'] = body.validationErrors;
-                            }
+                          error.error = JSON.parse(response.error);
                         } else {
-                            error = new Error(response.error);
+                          error.error = response.error;
                         }
+                      }
                     }
-            
-                    error['httpStatusCode'] = response.status;
-            
+                
                     return error;
-                }
+                  }
 
                 private serializeBody(body?: any) {
                     if (body == undefined) {
