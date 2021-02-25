@@ -1,29 +1,29 @@
 {
-    "compileOnSave": false,
-    "compilerOptions": {
-        "baseUrl": "src",
-        "sourceMap": true,
-        "declaration": false,
-        "moduleResolution": "node",
-        "emitDecoratorMetadata": true,
-        "experimentalDecorators": true,
-        "target": "es5",
-        "importHelpers": true,
-        "plugins": [
-            {
-                "alwaysShowRuleFailuresAsWarnings": true,
-                "name": "tslint-language-service"
-            }
-        ],
-        "typeRoots": [
-            "node_modules/@types"
-        ],
-        "lib": [
-            "es2017",
-            "dom"
-        ]
-    },
-    "include": [
-        "./src/**/*",
+  "compileOnSave": false,
+  "compilerOptions": {
+    "baseUrl": "src",
+    "sourceMap": true,
+    "declaration": false,
+    "moduleResolution": "node",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "target": "es5",
+    "importHelpers": true,
+    "plugins": [
+      {
+        "alwaysShowRuleFailuresAsWarnings": true,
+        "name": "tslint-language-service"
+      }
+    ],
+    "typeRoots": [
+      "node_modules/@types"
+    ],
+    "lib": [
+      "es2017",
+      "dom"
     ]
+  },
+  "include": [
+    "./src/**/*",
+  ]
 }

@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.DotNetProcess = void 0;
 var child_process_1 = require("child_process");
 var killProcess = require('tree-kill');
 /**

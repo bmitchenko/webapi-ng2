@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.SwaggerCoreAdapter = void 0;
 var specification_1 = require("../specification");
 var SwaggerCoreAdapter = /** @class */ (function () {
     function SwaggerCoreAdapter() {
